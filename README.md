@@ -1,0 +1,1 @@
+# sookmyung_AI_assignment
