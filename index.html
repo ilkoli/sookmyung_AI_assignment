@@ -93,8 +93,9 @@
   </div>
 
   <script>
-    // ⚠️ 새로 만든 Cloudflare Worker 주소로 변경해 주세요!
-    const WORKER_URL = "https://code4.wjddls0313.workers.dev/";
+    // ⚠️ Vercel 배포 완료 후 발급된 주소를 넣어주세요. (끝에 /api/match 포함)
+    // 예: "https://sookmyung-ai-assignment.vercel.app/api/match"
+    const API_URL = "https://여기에-본인의-vercel-도메인.vercel.app/api/match";
 
     const QUESTIONS = [
       { q: "소개팅 당일 전까지 연락할 때 나는?", a: "약속 잡았으면 당일까지 가벼운 안부만!", b: "매일 사소한 일상도 나누며 티키타카!" },
@@ -181,7 +182,7 @@
       }).join('\n\n');
 
       try {
-        const response = await fetch(WORKER_URL, {
+        const response = await fetch(API_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ comparisonText })
