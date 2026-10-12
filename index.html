@@ -20,7 +20,7 @@
         10개 질문으로 알아보는 나의 연애/데이트 성향.
         상대방에게 링크를 보내 매칭률을 확인하세요!
       </p>
-      <button onclick="startTest()" class="w-full py-4 bg-pink-500 hover:bg-pink-600 text-white font-bold rounded-2xl shadow-md transition">
+      <button onclick="startTest()" class="w-full py-4 bg-pink-500 hover:bg-pink-600 text-white font-bold rounded-2xl shadow-md transition active:scale-[0.98]">
         테스트 시작하기
       </button>
     </div>
@@ -51,15 +51,15 @@
       </div>
       <h2 class="text-xl font-bold text-gray-800 mb-2">내 답변 완료!</h2>
       <p class="text-sm text-gray-500 mb-6 leading-relaxed">
-        아래 링크를 복사해서 상대방에게 전달해 주세요.<br />
+        아래 링크를 복사해서 소개팅 상대에게 보내주세요.<br />
         상대방이 완료하면 궁합 리포트가 완성됩니다.
       </p>
-      <button onclick="copyInviteLink()" class="w-full py-4 bg-pink-500 hover:bg-pink-600 text-white font-bold rounded-2xl shadow-md transition">
+      <button onclick="copyInviteLink()" class="w-full py-4 bg-pink-500 hover:bg-pink-600 text-white font-bold rounded-2xl shadow-md transition active:scale-[0.98]">
         초대 링크 복사하기
       </button>
     </div>
 
-    <!-- 4. 로딩 화면 -->
+    <!-- 4. 분석 중 로딩 화면 -->
     <div id="step-loading" class="text-center py-16 hidden">
       <div class="inline-block animate-spin w-8 h-8 border-4 border-pink-400 border-t-transparent rounded-full mb-4"></div>
       <p class="text-sm font-medium text-gray-600">두 사람의 궁합을 Gemini가 분석 중입니다...</p>
@@ -85,7 +85,7 @@
         <ul id="res-cautions" class="text-xs text-gray-700 space-y-1"></ul>
       </div>
 
-      <button onclick="restartTest()" class="w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-2xl text-sm">
+      <button onclick="restartTest()" class="w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-2xl text-sm transition">
         처음부터 다시 하기
       </button>
     </div>
@@ -93,7 +93,7 @@
   </div>
 
   <script>
-    // ⚠️ 1단계에서 복사한 본인의 Worker URL을 붙여넣으세요!
+    // ⚠️ 새로 만든 Cloudflare Worker 주소로 변경해 주세요!
     const WORKER_URL = "https://code1.wjddls0313.workers.dev/";
 
     const QUESTIONS = [
@@ -113,6 +113,7 @@
     let myAnswers = [];
     let partnerAnswers = null;
 
+    // 페이지 진입 시 URL 파라미터 확인 (?a=01011...)
     window.onload = function() {
       const urlParams = new URLSearchParams(window.location.search);
       partnerAnswers = urlParams.get('a');
@@ -154,8 +155,10 @@
       } else {
         const myResultString = myAnswers.join('');
         if (!partnerAnswers) {
+          // A(방장)인 경우 초대 링크 복사 화면으로 이동
           showSection('step-share');
         } else {
+          // B(상대방)인 경우 Gemini 분석 요청
           callGeminiMatching(partnerAnswers, myResultString);
         }
       }
@@ -165,6 +168,8 @@
       const shareUrl = `${window.location.origin}${window.location.pathname}?a=${myAnswers.join('')}`;
       navigator.clipboard.writeText(shareUrl).then(() => {
         alert("소개팅 상대에게 보낼 초대 링크가 복사되었습니다!");
+      }).catch(() => {
+        prompt("아래 링크를 복사해 상대방에게 보내주세요:", shareUrl);
       });
     }
 
@@ -182,16 +187,18 @@
           body: JSON.stringify({ comparisonText })
         });
 
-        if (!response.ok) throw new Error("Worker 요청 실패");
-
         const result = await response.json();
+
+        if (!response.ok) {
+          throw new Error(result.error || "서버 응답 에러");
+        }
 
         document.getElementById('res-score').innerText = `${result.score}%`;
         document.getElementById('res-summary').innerText = result.summary;
 
         const strengthsUl = document.getElementById('res-strengths');
         strengthsUl.innerHTML = '';
-        result.strengths.forEach(s => {
+        (result.strengths || []).forEach(s => {
           const li = document.createElement('li');
           li.innerText = `• ${s}`;
           strengthsUl.appendChild(li);
@@ -199,7 +206,7 @@
 
         const cautionsUl = document.getElementById('res-cautions');
         cautionsUl.innerHTML = '';
-        result.cautions.forEach(c => {
+        (result.cautions || []).forEach(c => {
           const li = document.createElement('li');
           li.innerText = `• ${c}`;
           cautionsUl.appendChild(li);
@@ -207,7 +214,7 @@
 
         showSection('step-result');
       } catch (err) {
-        alert("분석 중 오류가 발생했습니다. Worker 설정을 확인해 주세요.");
+        alert("오류 상세: " + err.message);
         showSection('step-intro');
       }
     }
