@@ -1,5 +1,5 @@
 export default async function handler(req, res) {
-  // CORS 허용 (GitHub Pages 도메인 연동용)
+  // CORS 허용 (GitHub Pages와 통신용)
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -16,7 +16,7 @@ export default async function handler(req, res) {
   const apiKey = process.env.GEMINI_API_KEY;
 
   if (!apiKey) {
-    return res.status(500).json({ error: 'GEMINI_API_KEY 환경변수가 설정되지 않았습니다.' });
+    return res.status(500).json({ error: 'GEMINI_API_KEY가 설정되지 않았습니다.' });
   }
 
   const prompt = `당신은 소개팅 연애 코칭 전문가입니다. 아래 두 사람(A와 B)의 10개 질문 답변을 바탕으로 매칭 궁합을 분석해 주세요.
@@ -32,7 +32,8 @@ ${comparisonText}
 }`;
 
   try {
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    const response = await fetch(apiUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -43,12 +44,14 @@ ${comparisonText}
 
     const data = await response.json();
     if (!response.ok) {
-      return res.status(response.status).json({ error: data.error?.message || 'Google API 오류' });
+      return res.status(response.status).json({ 
+        error: data.error?.message || 'Google API 호출 오류' 
+      });
     }
 
     const textOutput = data.candidates?.[0]?.content?.parts?.[0]?.text;
     return res.status(200).send(textOutput);
   } catch (err) {
-    return res.status(500).json({ error: err.message });
+    return res.status(500).json({ error: `서버 내부 에러: ${err.message}` });
   }
 }
