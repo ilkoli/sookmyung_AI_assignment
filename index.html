@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>소개팅 성향 매칭 테스트</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-[#F7F8FA] min-h-screen flex items-center justify-center p-4">
+
+  <div class="w-full max-w-md bg-white rounded-3xl shadow-sm border border-gray-100 p-6 flex flex-col items-center">
+    
+    <!-- 1. 인트로 화면 -->
+    <div id="step-intro" class="text-center py-8 w-full">
+      <span id="badge-text" class="text-xs font-semibold px-3 py-1 bg-pink-50 text-pink-500 rounded-full">
+        소개팅 전 필수 코스
+      </span>
+      <h1 class="text-2xl font-bold mt-4 mb-2 text-gray-800">소개팅 성향 매칭 테스트</h1>
+      <p id="desc-text" class="text-sm text-gray-500 mb-8 leading-relaxed whitespace-pre-line">
+        10개 질문으로 알아보는 나의 연애/데이트 성향.
+        상대방에게 링크를 보내 매칭률을 확인하세요!
+      </p>
+      <button onclick="startTest()" class="w-full py-4 bg-pink-500 hover:bg-pink-600 text-white font-bold rounded-2xl shadow-md transition">
+        테스트 시작하기
+      </button>
+    </div>
+
+    <!-- 2. 문항 진행 화면 -->
+    <div id="step-testing" class="w-full hidden">
+      <div class="w-full bg-gray-100 h-2 rounded-full mb-6 overflow-hidden">
+        <div id="progress-bar" class="bg-pink-500 h-full transition-all duration-300" style="width: 10%;"></div>
+      </div>
+      <div id="q-counter" class="text-center text-xs font-bold text-gray-400 mb-2">Q1 / 10</div>
+      <h2 id="q-text" class="text-lg font-bold text-gray-800 text-center min-h-[56px] flex items-center justify-center mb-8 px-2">
+        질문 내용
+      </h2>
+      <div class="space-y-4">
+        <button onclick="selectChoice('0')" id="btn-a" class="w-full p-5 text-left border-2 border-gray-100 rounded-2xl hover:border-pink-300 hover:bg-pink-50/30 transition text-gray-700 text-sm font-medium leading-relaxed active:scale-[0.99]">
+          선택지 A
+        </button>
+        <button onclick="selectChoice('1')" id="btn-b" class="w-full p-5 text-left border-2 border-gray-100 rounded-2xl hover:border-pink-300 hover:bg-pink-50/30 transition text-gray-700 text-sm font-medium leading-relaxed active:scale-[0.99]">
+          선택지 B
+        </button>
+      </div>
+    </div>
+
+    <!-- 3. A 응답 완료 (초대 링크 복사 화면) -->
+    <div id="step-share" class="text-center py-6 w-full hidden">
+      <div class="w-16 h-16 bg-pink-100 text-pink-500 rounded-full flex items-center justify-center mx-auto text-2xl mb-4">
+        💌
+      </div>
+      <h2 class="text-xl font-bold text-gray-800 mb-2">내 답변 완료!</h2>
+      <p class="text-sm text-gray-500 mb-6 leading-relaxed">
+        아래 링크를 복사해 소개팅 상대에게 보내주세요.<br />
+        상대방이 응답하면 둘의 궁합 분석 결과가 나타납니다.
+      </p>
+      <button onclick="copyInviteLink()" class="w-full py-4 bg-pink-500 hover:bg-pink-600 text-white font-bold rounded-2xl shadow-md transition">
+        초대 링크 복사하기
+      </button>
+    </div>
+
+    <!-- 4. 분석 중 로딩 화면 -->
+    <div id="step-loading" class="text-center py-16 hidden">
+      <div class="inline-block animate-spin w-8 h-8 border-4 border-pink-400 border-t-transparent rounded-full mb-4"></div>
+      <p class="text-sm font-medium text-gray-600">두 사람의 성향을 Gemini가 분석 중입니다...</p>
+    </div>
+
+    <!-- 5. 결과 리포트 화면 -->
+    <div id="step-result" class="w-full text-center py-2 hidden">
+      <span class="text-xs font-semibold px-3 py-1 bg-pink-50 text-pink-500 rounded-full">
+        매칭 분석 결과
+      </span>
+      <div class="my-6">
+        <span id="res-score" class="text-5xl font-extrabold text-pink-500">0%</span>
+        <p id="res-summary" class="text-base font-bold text-gray-800 mt-3"></p>
+      </div>
+
+      <div class="bg-gray-50 rounded-2xl p-4 text-left mb-4">
+        <h3 class="text-xs font-bold text-gray-500 mb-2">💡 잘 맞는 포인트</h3>
+        <ul id="res-strengths" class="text-xs text-gray-700 space-y-1"></ul>
+      </div>
+
+      <div class="bg-gray-50 rounded-2xl p-4 text-left mb-6">
+        <h3 class="text-xs font-bold text-gray-500 mb-2">⚠️ 서로 배려하면 좋은 점</h3>
+        <ul id="res-cautions" class="text-xs text-gray-700 space-y-1"></ul>
+      </div>
+
+      <button onclick="restartTest()" class="w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-2xl text-sm">
+        처음부터 다시 하기
+      </button>
+    </div>
+
+  </div>
+
+  <script>
+    // ⚠️ 개인 테스트용일 경우 여기에 API 키를 입력합니다.
+    // GitHub 공개 저장소(Public)에 올릴 때는 키가 유출되지 않도록 Private 저장소로 올리거나 Cloudflare Worker 프록시를 사용하는 것이 안전합니다.
+    const GEMINI_API_KEY = "YOUR_GEMINI_API_KEY_HERE";
+
+    const QUESTIONS = [
+      { q: "소개팅 당일 전까지 연락할 때 나는?", a: "약속 잡았으면 당일까지 가벼운 안부만!", b: "매일 사소한 일상도 나누며 티키타카!" },
+      { q: "첫 데이트 장소를 정할 때 내 스타일은?", a: "후기 검증된 맛집과 카페 동선까지 미리 체크", b: "분위기 좋은 동네만 정해두고 끌리는 곳으로" },
+      { q: "첫 만남 데이트 코스로 더 끌리는 곳은?", a: "대화 나누기 편하고 조용한 감성 와인바/다이닝", b: "적당히 북적이고 편안한 캐주얼 펍/맛집" },
+      { q: "대화 도중 어색한 정적이 흘렀을 때 나는?", a: "정적을 못 견디고 아무 질문이나 필사적으로 던진다", b: "상대방 반응을 살피며 메뉴판을 보거나 자연스레 둔다" },
+      { q: "첫 만남 계산할 때 나는?", a: "첫 만남이니 한 명이 사고 다음 코스를 유도한다", b: "첫 만남이라도 서로 부담 없이 더치페이가 편하다" },
+      { q: "상대방이 고민을 털어놓을 때 나는?", a: "폭풍 공감과 리액션으로 마음을 달래준다", b: "해결책이나 대안을 논리적으로 함께 고민해 준다" },
+      { q: "주말 데이트가 없는 날, 내 에너지 충전법은?", a: "혼자 집에서 침대 뒹굴거리기", b: "취미 활동을 하거나 친구 만나서 밖으로 나가기" },
+      { q: "호감이 있는 사람에게 내 감정 표현은?", a: "눈치챌 수 있게 돌직구/직진으로 표현한다", b: "신중하게 상대 반응을 보며 서서히 다가간다" },
+      { q: "연애 중 서운한 점이 생겼을 때 나는?", a: "감정이 쌓이기 전에 바로 대화로 푼다", b: "혼자 생각을 정리하고 감정이 가라앉은 뒤 말한다" },
+      { q: "내가 바라는 연애의 기본 형태는?", a: "친구처럼 편하고 유쾌한 티키타카 연애", b: "안정감을 주고 든든하게 의지할 수 있는 연애" }
+    ];
+
+    let currentIndex = 0;
+    let myAnswers = [];
+    let partnerAnswers = null;
+
+    // 페이지 진입 시 URL 파라미터 확인
+    window.onload = function() {
+      const urlParams = new URLSearchParams(window.location.search);
+      partnerAnswers = urlParams.get('a');
+
+      if (partnerAnswers) {
+        document.getElementById('badge-text').innerText = "상대방의 초대 도착! 💌";
+        document.getElementById('desc-text').innerText = "상대방이 테스트를 완료했습니다!\n나의 성향을 선택하고 둘의 궁합을 확인해 보세요.";
+      }
+    };
+
+    function showSection(id) {
+      ['step-intro', 'step-testing', 'step-share', 'step-loading', 'step-result'].forEach(s => {
+        document.getElementById(s).classList.add('hidden');
+      });
+      document.getElementById(id).classList.remove('hidden');
+    }
+
+    function startTest() {
+      currentIndex = 0;
+      myAnswers = [];
+      showSection('step-testing');
+      renderQuestion();
+    }
+
+    function renderQuestion() {
+      const item = QUESTIONS[currentIndex];
+      document.getElementById('q-counter').innerText = `Q${currentIndex + 1} / ${QUESTIONS.length}`;
+      document.getElementById('progress-bar').style.width = `${((currentIndex + 1) / QUESTIONS.length) * 100}%`;
+      document.getElementById('q-text').innerText = item.q;
+      document.getElementById('btn-a').innerText = item.a;
+      document.getElementById('btn-b').innerText = item.b;
+    }
+
+    function selectChoice(choice) {
+      myAnswers.push(choice);
+      if (currentIndex + 1 < QUESTIONS.length) {
+        currentIndex++;
+        renderQuestion();
+      } else {
+        const myResultString = myAnswers.join('');
+        if (!partnerAnswers) {
+          showSection('step-share');
+        } else {
+          callGeminiMatching(partnerAnswers, myResultString);
+        }
+      }
+    }
+
+    function copyInviteLink() {
+      const shareUrl = `${window.location.origin}${window.location.pathname}?a=${myAnswers.join('')}`;
+      navigator.clipboard.writeText(shareUrl).then(() => {
+        alert("소개팅 상대에게 보낼 초대 링크가 복사되었습니다!");
+      });
+    }
+
+    async function callGeminiMatching(ansA, ansB) {
+      showSection('step-loading');
+
+      const comparisonText = QUESTIONS.map((q, idx) => {
+        return `[질문 ${idx + 1}: ${q.q}]\n- A: "${ansA[idx] === '0' ? q.a : q.b}"\n- B: "${ansB[idx] === '0' ? q.a : q.b}"`;
+      }).join('\n\n');
+
+      const prompt = `당신은 소개팅 연애 코칭 전문가입니다. 아래 두 사람(A와 B)의 10개 질문 답변을 바탕으로 매칭 궁합을 분석해 주세요.\n\n${comparisonText}\n\n반드시 아래 JSON 형식으로만 응답하세요:
+{
+  "score": 85,
+  "summary": "한 줄 요약 총평",
+  "strengths": ["잘 맞는 점 1", "잘 맞는 점 2"],
+  "cautions": ["주의/배려할 점 1", "주의/배려할 점 2"]
+}`;
+
+      try {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: { responseMimeType: "application/json" }
+          })
+        });
+
+        const data = await response.json();
+        const result = JSON.parse(data.candidates[0].content.parts[0].text);
+
+        document.getElementById('res-score').innerText = `${result.score}%`;
+        document.getElementById('res-summary').innerText = result.summary;
+
+        const strengthsUl = document.getElementById('res-strengths');
+        strengthsUl.innerHTML = '';
+        result.strengths.forEach(s => {
+          const li = document.createElement('li');
+          li.innerText = `• ${s}`;
+          strengthsUl.appendChild(li);
+        });
+
+        const cautionsUl = document.getElementById('res-cautions');
+        cautionsUl.innerHTML = '';
+        result.cautions.forEach(c => {
+          const li = document.createElement('li');
+          li.innerText = `• ${c}`;
+          cautionsUl.appendChild(li);
+        });
+
+        showSection('step-result');
+      } catch (err) {
+        alert("분석 중 오류가 발생했습니다. API 키를 확인해 주세요.");
+        showSection('step-intro');
+      }
+    }
+
+    function restartTest() {
+      window.location.href = window.location.pathname;
+    }
+  </script>
+</body>
+</html>
