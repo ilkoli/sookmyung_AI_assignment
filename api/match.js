@@ -19,7 +19,7 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'GEMINI_API_KEY가 설정되지 않았습니다.' });
   }
 
-  const prompt = `당신은 연애 코칭 전문가입니다. 아래 두 사람의 질문 답변을 바탕으로 매칭 궁합을 분석해 주세요.
+  const prompt = `당신은 소개팅 및 연애 코칭 전문가입니다. 아래 두 사람(A와 B)의 질문 답변을 바탕으로 매칭 궁합을 분석해 주세요.
 
 ${comparisonText}
 
@@ -29,9 +29,10 @@ ${comparisonText}
   "summary": "한 줄 요약 총평",
   "characterSvg": "<svg viewBox='0 0 100 100' width='110' height='110' xmlns='http://www.w3.org/2000/svg'><circle cx='50' cy='50' r='45' fill='#FFE082'/><circle cx='35' cy='42' r='4' fill='#333'/><circle cx='65' cy='42' r='4' fill='#333'/><path d='M 35 58 Q 50 70 65 58' stroke='#333' stroke-width='3' fill='none' stroke-linecap='round'/><circle cx='28' cy='52' r='5' fill='#FF8A80' opacity='0.6'/><circle cx='72' cy='52' r='5' fill='#FF8A80' opacity='0.6'/></svg>",
   "strengths": ["잘 맞는 점 1", "잘 맞는 점 2"],
-  "cautions": ["주의/배려할 점 1", "주의/배려할 점 2"]
+  "cautions": ["주의/배려할 점 1", "주의/배려할 점 2"],
+  "dateCourse": "두 사람의 성향을 고려한 맞춤형 추천 데이트 코스 (동선이나 장소 분위기 포함 2~3줄)"
 }
-* characterSvg 필드에는 두 사람의 케미에 어울리는 귀여운 동그라미 얼굴 캐릭터(배경 원, 눈, 입, 볼터치 등)를 인라인 SVG 코드로 직접 만들어 넣어주세요. 속성값 따옴표는 반드시 작은따옴표(')를 사용하세요.`;
+* characterSvg 필드에는 두 사람의 케미에 어울리는 귀여운 동그라미 얼굴 캐릭터를 인라인 SVG 코드로 넣어주세요. 속성 따옴표는 작은따옴표(')를 사용하세요.`;
 
   try {
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`;
