@@ -83,7 +83,11 @@
       <span class="text-xs font-semibold px-3 py-1 bg-pink-50 text-pink-500 rounded-full">
         <span id="res-names"></span> 궁합 분석 결과
       </span>
-      <div class="my-6">
+
+      <!-- AI가 생성한 SVG 캐릭터가 표시되는 영역 -->
+      <div id="res-svg-container" class="my-5 flex items-center justify-center"></div>
+
+      <div class="mb-6">
         <span id="res-score" class="text-5xl font-extrabold text-pink-500">0%</span>
         <p id="res-summary" class="text-base font-bold text-gray-800 mt-3"></p>
       </div>
@@ -228,6 +232,14 @@
         document.getElementById('res-names').innerText = `${nameA} & ${nameB}`;
         document.getElementById('res-score').innerText = `${result.score}%`;
         document.getElementById('res-summary').innerText = result.summary;
+
+        // Gemini가 생성한 SVG 캐릭터 삽입
+        const svgContainer = document.getElementById('res-svg-container');
+        if (result.characterSvg) {
+          svgContainer.innerHTML = result.characterSvg;
+        } else {
+          svgContainer.innerHTML = '';
+        }
 
         const strengthsUl = document.getElementById('res-strengths');
         strengthsUl.innerHTML = '';
