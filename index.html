@@ -10,7 +10,7 @@
 
   <div class="w-full max-w-md bg-white rounded-3xl shadow-sm border border-gray-100 p-6 flex flex-col items-center">
     
-    <!-- 1. 시작 화면 (이름 입력란 포함) -->
+    <!-- 1. 시작 화면 -->
     <div id="step-intro" class="text-center py-6 w-full">
       <span id="badge-text" class="text-xs font-semibold px-3 py-1 bg-pink-50 text-pink-500 rounded-full">
         소개팅 전 필수 코스
@@ -84,7 +84,7 @@
         <span id="res-names"></span> 궁합 분석 결과
       </span>
 
-      <!-- AI가 생성한 SVG 캐릭터가 표시되는 영역 -->
+      <!-- AI 생성 SVG 캐릭터 -->
       <div id="res-svg-container" class="my-5 flex items-center justify-center"></div>
 
       <div class="mb-6">
@@ -92,11 +92,21 @@
         <p id="res-summary" class="text-base font-bold text-gray-800 mt-3"></p>
       </div>
 
+      <!-- 추천 데이트 코스 박스 -->
+      <div class="bg-rose-50 border border-rose-100 rounded-2xl p-4 text-left mb-4">
+        <h3 class="text-xs font-bold text-rose-600 mb-2 flex items-center gap-1">
+          🍷 추천 데이트 코스
+        </h3>
+        <p id="res-date-course" class="text-xs text-gray-700 leading-relaxed font-normal whitespace-pre-line"></p>
+      </div>
+
+      <!-- 잘 맞는 포인트 -->
       <div class="bg-gray-50 rounded-2xl p-4 text-left mb-4">
         <h3 class="text-xs font-bold text-gray-500 mb-2">💡 잘 맞는 포인트</h3>
         <ul id="res-strengths" class="text-xs text-gray-700 space-y-1"></ul>
       </div>
 
+      <!-- 배려할 점 -->
       <div class="bg-gray-50 rounded-2xl p-4 text-left mb-6">
         <h3 class="text-xs font-bold text-gray-500 mb-2">⚠️ 서로 배려하면 좋은 점</h3>
         <ul id="res-cautions" class="text-xs text-gray-700 space-y-1"></ul>
@@ -188,11 +198,11 @@
       } else {
         const myResultString = myAnswers.join('');
         if (!partnerAnswers) {
-          // 내가 방장(A)인 경우
+          // A(방장)인 경우 초대 링크 복사 화면으로 이동
           document.getElementById('share-user-name').innerText = myName;
           showSection('step-share');
         } else {
-          // 상대방(B)인 경우 매칭 요청
+          // B(상대방)인 경우 Gemini 분석 요청
           callGeminiMatching(partnerName, partnerAnswers, myName, myResultString);
         }
       }
@@ -233,7 +243,7 @@
         document.getElementById('res-score').innerText = `${result.score}%`;
         document.getElementById('res-summary').innerText = result.summary;
 
-        // Gemini가 생성한 SVG 캐릭터 삽입
+        // SVG 캐릭터 삽입
         const svgContainer = document.getElementById('res-svg-container');
         if (result.characterSvg) {
           svgContainer.innerHTML = result.characterSvg;
@@ -241,6 +251,10 @@
           svgContainer.innerHTML = '';
         }
 
+        // 추천 데이트 코스 삽입
+        document.getElementById('res-date-course').innerText = result.dateCourse || "두 분만의 대화가 편안한 조용한 카페를 추천합니다.";
+
+        // 잘 맞는 점 목록
         const strengthsUl = document.getElementById('res-strengths');
         strengthsUl.innerHTML = '';
         (result.strengths || []).forEach(s => {
@@ -249,6 +263,7 @@
           strengthsUl.appendChild(li);
         });
 
+        // 배려할 점 목록
         const cautionsUl = document.getElementById('res-cautions');
         cautionsUl.innerHTML = '';
         (result.cautions || []).forEach(c => {
