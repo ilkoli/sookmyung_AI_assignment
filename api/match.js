@@ -34,7 +34,7 @@ ${comparisonText}
 * characterSvg 필드에는 두 사람의 케미에 어울리는 귀여운 동그라미 얼굴 캐릭터(배경 원, 눈, 입, 볼터치 등)를 인라인 SVG 코드로 직접 만들어 넣어주세요. 속성값 따옴표는 반드시 작은따옴표(')를 사용하세요.`;
 
   try {
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`;
     
     const response = await fetch(apiUrl, {
       method: 'POST',
